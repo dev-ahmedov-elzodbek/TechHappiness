@@ -617,9 +617,11 @@ function ChatApp() {
                     <span className="bg-dark-card2 text-gray-400 text-xs px-3 py-1 rounded-full">{date}</span>
                   </div>
                   {dayMsgs.map((msg, i) => {
-                    const isMe = msg.senderId._id === user.id || msg.senderId._id === String(user.id);
+                    const senderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId;
+                    const isMe = senderId === user.id || senderId === String(user.id);
                     const prevMsg = dayMsgs[i - 1];
-                    const sameAuthor = prevMsg && prevMsg.senderId._id === msg.senderId._id;
+                    const prevSenderId = typeof prevMsg?.senderId === 'object' ? prevMsg.senderId._id : prevMsg?.senderId;
+                    const sameAuthor = prevMsg && prevSenderId === senderId;
                     return (
                       <MessageBubble key={msg._id || i} msg={msg} isMe={isMe}
                         isGroup={activeChat.type === "group"} sameAuthor={sameAuthor} />
@@ -834,15 +836,17 @@ function GroupItem({ g, active, onClick }) {
 }
 
 function MessageBubble({ msg, isMe, isGroup, sameAuthor }) {
+  const sender = typeof msg.senderId === 'object' ? msg.senderId : { avatar: '👤', name: 'Unknown' };
+
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"} ${sameAuthor ? "mt-0.5" : "mt-2"}`}>
       {!isMe && !sameAuthor && isGroup && (
-        <span className="text-lg mr-2 self-end mb-1">{msg.senderId.avatar}</span>
+        <span className="text-lg mr-2 self-end mb-1">{sender.avatar || '👤'}</span>
       )}
       {!isMe && sameAuthor && isGroup && <span className="w-7 mr-2"></span>}
       <div className={`max-w-xs lg:max-w-md ${isMe ? "items-end" : "items-start"} flex flex-col`}>
         {!isMe && !sameAuthor && isGroup && (
-          <span className="text-xs text-brand-green mb-0.5 ml-1">{msg.senderId.name}</span>
+          <span className="text-xs text-brand-green mb-0.5 ml-1">{sender.name || 'Unknown'}</span>
         )}
         <div className={`px-3 py-2 rounded-2xl text-sm ${isMe
           ? "bg-brand-green text-black rounded-br-sm"
